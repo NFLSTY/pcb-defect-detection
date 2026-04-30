@@ -1,0 +1,32 @@
+# Environments
+.venv
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Editor
+.vscode/
+.idea/
+
+# Weights & Biases
+wandb/
+
+# PromptFlow 
+.promptflow/
+
+# Machine Learning framework outputs / YOLO runs
+runs/
+*.pt
+*.pth
+*.tflite
+*.onnx
+
+# OS generated files
+.DS_Store
+Thumbs.db

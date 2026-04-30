@@ -1,2 +1,13 @@
 /raw
 /augmented
+
+# Dataset archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# YOLO or cache files 
+labels.cache
+*.tfrecord
+*.cache
