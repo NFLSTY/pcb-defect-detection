@@ -20,13 +20,6 @@ wandb/
 # PromptFlow 
 .promptflow/
 
-# Machine Learning framework outputs / YOLO runs
-runs/
-*.pt
-*.pth
-*.tflite
-*.onnx
-
 # OS generated files
 .DS_Store
 Thumbs.db
