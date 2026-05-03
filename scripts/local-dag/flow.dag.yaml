@@ -1,0 +1,85 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  kaggle_dataset_slug:
+    type: string
+    default: mujtabamatin/pcb-defect-dataset
+  use_kaggle_raw_directly:
+    type: bool
+    default: true
+  kaggle_raw_root:
+    type: string
+    default: /kaggle/input/pcb-defect-dataset
+  brightness_mean_raw:
+    type: double
+    default: 60.8
+  sharpness_mean_raw:
+    type: double
+    default: 1941
+  augmented_train_images:
+    type: int
+    default: 2772
+  wandb_project:
+    type: string
+    default: pcb-defect-detection
+  dataset_artifact_name:
+    type: string
+    default: pcb-augmented-dataset
+outputs:
+  process_summary:
+    type: string
+    reference: ${pipeline_summary.output}
+  tracking_context:
+    type: object
+    reference: ${wandb_tracking.output}
+nodes:
+- name: kaggle_source
+  type: python
+  source:
+    type: code
+    path: kaggle_data_source.py
+  inputs:
+    kaggle_dataset_slug: ${inputs.kaggle_dataset_slug}
+    use_kaggle_raw_directly: ${inputs.use_kaggle_raw_directly}
+    kaggle_raw_root: ${inputs.kaggle_raw_root}
+- name: eda_stage
+  type: python
+  source:
+    type: code
+    path: eda_stage.py
+  inputs:
+    source_context: ${kaggle_source.output}
+    brightness_mean_raw: ${inputs.brightness_mean_raw}
+    sharpness_mean_raw: ${inputs.sharpness_mean_raw}
+    eda_notebook_path: scripts/eda.ipynb
+- name: augmentation_stage
+  type: python
+  source:
+    type: code
+    path: augmentation_stage.py
+  inputs:
+    eda_context: ${eda_stage.output}
+    augmented_train_images: ${inputs.augmented_train_images}
+    augmentation_script_path: scripts/augment_data.py
+    augmented_root: data/augmented/train
+- name: wandb_tracking
+  type: python
+  source:
+    type: code
+    path: wandb_tracking_stage.py
+  inputs:
+    augmentation_context: ${augmentation_stage.output}
+    wandb_project: ${inputs.wandb_project}
+    dataset_artifact_name: ${inputs.dataset_artifact_name}
+    upload_script_path: scripts/upload_dataset_wandb.py
+- name: pipeline_summary
+  type: python
+  source:
+    type: code
+    path: pipeline_summary.py
+  inputs:
+    source_context: ${kaggle_source.output}
+    eda_context: ${eda_stage.output}
+    augmentation_context: ${augmentation_stage.output}
+    tracking_context: ${wandb_tracking.output}
