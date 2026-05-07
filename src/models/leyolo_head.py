@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from ultralytics.utils.tal import make_anchors
 
-from models.mobilevit_xxs import MobileViT, model_cfg_xxs
+from mobilevit_xxs import MobileViT, model_cfg_xxs
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
