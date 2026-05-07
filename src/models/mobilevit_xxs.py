@@ -2,6 +2,7 @@ from typing import Callable, Optional
 from einops import rearrange
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 # Module Part (Reusable building blocks)
 class ConvNormAct(nn.Module):
@@ -162,9 +163,16 @@ class MobileVitBlock(nn.Module):
         local_repr = self.local_representation(x)
         # global_repr = self.global_representation(local_repr) 
         _, _, h, w = local_repr.shape
+        pad_h = (2 - h % 2) % 2
+        pad_w = (2 - w % 2) % 2
+        if pad_h or pad_w:
+            local_repr = F.pad(local_repr, (0, pad_w, 0, pad_h))
+        _, _, h_pad, w_pad = local_repr.shape
         global_repr = rearrange(local_repr, 'b d (h ph) (w pw) -> b (ph pw) (h w) d', ph=2, pw=2)
         global_repr = self.transformer(global_repr)
-        global_repr = rearrange(global_repr, 'b (ph pw) (h w) d -> b d (h ph) (w pw)', h=h // 2, w=w // 2, ph=2, pw=2)
+        global_repr = rearrange(global_repr, 'b (ph pw) (h w) d -> b d (h ph) (w pw)', h=h_pad // 2, w=w_pad // 2, ph=2, pw=2)
+        if pad_h or pad_w:
+            global_repr = global_repr[:, :, :h, :w]
 
         # Fuse the local and gloval features in the concatenation tensor and pass through the fusion block to get the final output
         fuse_repr = self.fusion_block1(global_repr)
@@ -242,3 +250,4 @@ if __name__ == "__main__":
     model = mobilevit_xxs(256)
     print(model)
     print("XXS params:", sum(p.numel() for p in model.parameters()))
+    
