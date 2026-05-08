@@ -1,26 +1,24 @@
-import wandb
 import os
+import wandb
 
 def upload_dataset():
     print("Authenticating with W&B...")
-    # This will prompt you to paste your W&B API key if you haven't logged in locally yet
     wandb.login()
 
-    # Initialize a W&B run solely for uploading the dataset
+    # Initialize a W&B run for uploading the dataset
     print("Initializing W&B run...")
     run = wandb.init(project="pcb-defect-detection", job_type="dataset-creation")
 
-    # Create an "Artifact" (a versioned bundle of files)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Create Artifacts
     print("Creating dataset artifact...")
     dataset_artifact = wandb.Artifact(
         name="pcb-augmented-dataset", 
         type="dataset", 
-        description="V1 dataset containing augmented training data with fine-tuned parameters",
-        metadata={"augmentation": "fine-tuned parameters"}
+        description="Dataset of augmented training data",
+        metadata={"augmentation": "albumentations"}
     )
-    
-    # Get the absolute path of the directory containing this script
-    script_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Safely construct the paths to the data folders relative to this script
     augmented_path = os.path.normpath(os.path.join(script_dir, "..", "data", "augmented"))

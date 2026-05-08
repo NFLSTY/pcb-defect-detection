@@ -25,7 +25,7 @@ def upload_code(project: str = "pcb-defect-detection"):
     if core_dir.exists():
         for file_path in core_dir.glob("*.py"):
             # Add the contents directly to the artifact
-            core_artifact.add_file(str(file_path), name=f"models/{file_path.name}")
+            core_artifact.add_file(str(file_path), name=file_path.name)
     else:
         print(f"Warning: core directory not found at {core_dir}")
 
