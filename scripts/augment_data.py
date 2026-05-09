@@ -16,25 +16,28 @@ os.makedirs(AUG_LBL_DIR, exist_ok=True)
 
 # The Fine-Tuned Pipeline with CLAHE
 transform = A.Compose([
-    A.Resize(height=480, width=480),
+    A.RandomResizedCrop(size=(640, 640), scale=(0.5, 1.0), p=0.5),
+    A.Resize(height=640, width=640, p=0.5),
     
     # Geometric Transformations
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.5),
-    A.Affine(translate_percent=0.05, scale=(0.95, 1.05), rotate=[-10, 10], p=0.4, border_mode=cv2.BORDER_CONSTANT),
-    A.Perspective(scale=(0.02, 0.08), p=0.2), 
+    A.Affine(translate_percent=0.1, scale=(0.9, 1.1), rotate=[-15, 15], p=0.4, border_mode=cv2.BORDER_REFLECT_101),
+    A.Perspective(scale=(0.02, 0.05), p=0.2), 
     
     # --- THE LOW-LIGHT FIX ---
     # CLAHE dynamically equalizes the histogram in local patches, rescuing shadow details
-    A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+    A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=0.5),
+    A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=15, val_shift_limit=10, p=0.3),
     
     # Pixel/Color Transformations
-    A.RandomBrightnessContrast(brightness_limit=0.15, contrast_limit=0.15, p=0.4),
-    A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=15, val_shift_limit=10, p=0.3),
-    A.GaussianBlur(blur_limit=(3, 5), sigma_limit=(0.1, 1.5), p=0.2),
-    A.GaussNoise(std_range=(0.005, 0.015), mean_range=(0.0, 0.0), p=0.2),
+    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.4),
+    A.OneOf([
+        A.MotionBlur(p=0.5),
+        A.GaussianBlur(blur_limit=(3, 5), p=0.5),
+    ], p=0.2),
     
-], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels'], min_visibility=0.2))
+], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels'], min_visibility=0.3))
 
 def process_single_image(img_path):
     filename = os.path.basename(img_path)
